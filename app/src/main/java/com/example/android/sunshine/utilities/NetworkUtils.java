@@ -24,6 +24,10 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Scanner;
 
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+
 /**
  * These utilities will be used to communicate with the weather servers.
  */
@@ -124,4 +128,27 @@ public final class NetworkUtils {
             urlConnection.disconnect();
         }
     }
+
+    /**
+     * This method returns the entire result from the HTTP response using OKHttp.
+     *
+     * @param url The URL to fetch the HTTP response from.
+     * @return The contents of the HTTP response.
+     * @throws IOException Related to network and stream reading
+     */
+
+
+    public static String getResponseFromOKHttpUrl(URL url) throws IOException
+    {
+        OkHttpClient httpClient = new OkHttpClient();
+        Request request = new Request.Builder().url(url).build();
+
+        Response response = httpClient.newCall(request).execute();
+        String json = response.body().string();
+
+        return json;
+    }
+
+
+
 }
