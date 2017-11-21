@@ -15,29 +15,72 @@
  */
 package com.example.android.sunshine;
 
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.TextView;
 
+import com.example.android.sunshine.data.SunshinePreferences;
+import com.example.android.sunshine.utilities.NetworkUtils;
+
+import java.io.IOException;
+import java.net.URL;
+
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+
 public class MainActivity extends AppCompatActivity {
 
-    TextView weatherTextView;
+    TextView mWeatherTextView;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState)
+    {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_forecast);
 
-        weatherTextView = (TextView) findViewById(R.id.tv_weather_data);
+        mWeatherTextView = (TextView) findViewById(R.id.tv_weather_data);
+        loadWeatherData();
 
-        String[] fakeWeatherData = {"sunny", "pizza", "rainy", "yummy"};
+    }
 
-        String weather = "";
-        for(String weatherdata : fakeWeatherData)
+    private void loadWeatherData()
+    {
+        URL queryURL = NetworkUtils.buildUrl(SunshinePreferences.PREF_CITY_NAME);
+        new WeatherQueryTask().execute(queryURL);
+    }
+
+    public class WeatherQueryTask extends AsyncTask<URL, Void, String>
+    {
+        @Override
+        protected void onPostExecute(String s)
         {
-            weather += (weatherdata + "\n\n\n");
+            super.onPostExecute(s);
+            mWeatherTextView.setText(s);
         }
 
-        weatherTextView.setText(weather);
+        @Override
+        protected String doInBackground(URL... urls)
+        {
+            OkHttpClient httpClient = new OkHttpClient();
+            Request request = new Request.Builder().url(urls[0]).build();
+            Response response;
+
+            String json = null;
+
+            try
+            {
+                response = httpClient.newCall(request).execute();
+                json = response.body().string();
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+            }
+
+            return json;
+        }
     }
 }
+

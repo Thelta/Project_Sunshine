@@ -15,9 +15,12 @@
  */
 package com.example.android.sunshine.utilities;
 
+import android.net.Uri;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Scanner;
 
@@ -64,9 +67,23 @@ public final class NetworkUtils {
      * @param locationQuery The location that will be queried for.
      * @return The URL to use to query the weather server.
      */
-    public static URL buildUrl(String locationQuery) {
-        /** This will be implemented in a future lesson **/
-        return null;
+    public static URL buildUrl(String locationQuery)
+    {
+        Uri uri = Uri.parse(STATIC_WEATHER_URL).buildUpon()
+                .appendQueryParameter(QUERY_PARAM, locationQuery).build();
+
+        URL url = null;
+
+        try
+        {
+            url = new URL(uri.toString());
+        }
+        catch (MalformedURLException e)
+        {
+            e.printStackTrace();
+        }
+
+        return url;
     }
 
     /**
