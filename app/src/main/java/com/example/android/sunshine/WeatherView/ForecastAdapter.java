@@ -16,9 +16,11 @@ import com.example.android.sunshine.R;
 public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.ForecastAdapterViewHolder>
 {
     private String[] mWeatherData;
+    private ForecastAdapterOnClickHandler mClickHandler;
 
-    public ForecastAdapter()
+    public ForecastAdapter(ForecastAdapterOnClickHandler handler)
     {
+        mClickHandler = handler;
     }
 
     @Override
@@ -49,7 +51,12 @@ public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.Foreca
         notifyDataSetChanged();
     }
 
-    public class ForecastAdapterViewHolder extends RecyclerView.ViewHolder
+    public interface ForecastAdapterOnClickHandler
+    {
+        void onClickList(String weather);
+    }
+
+    public class ForecastAdapterViewHolder extends RecyclerView.ViewHolder implements RecyclerView.OnClickListener
     {
         public final TextView mWeatherTextView;
 
@@ -58,6 +65,14 @@ public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.Foreca
             super(itemView);
 
             mWeatherTextView = (TextView) itemView.findViewById(R.id.tv_weather_data);
+            itemView.setOnClickListener(this);
+        }
+
+        @Override
+        public void onClick(View v)
+        {
+            int adapterPosition = getAdapterPosition();
+            mClickHandler.onClickList(mWeatherData[adapterPosition]);
         }
     }
 }
