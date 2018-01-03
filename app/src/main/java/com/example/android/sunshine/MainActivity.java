@@ -15,9 +15,12 @@
  */
 package com.example.android.sunshine;
 
+import android.graphics.drawable.GradientDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -25,22 +28,19 @@ import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.example.android.sunshine.WeatherView.ForecastAdapter;
 import com.example.android.sunshine.data.SunshinePreferences;
 import com.example.android.sunshine.utilities.NetworkUtils;
 import com.example.android.sunshine.utilities.OpenWeatherJsonUtils;
 
-import java.io.IOException;
 import java.net.URL;
 
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
-
-public class MainActivity extends AppCompatActivity {
-
-    TextView mWeatherTextView;
-    TextView mErrorMessageTextView;
-    ProgressBar mWeatherRequestProgressBar;
+public class MainActivity extends AppCompatActivity
+{
+    private RecyclerView mRecyclerView;
+    private ForecastAdapter mForecastAdapter;
+    private TextView mErrorMessageTextView;
+    private ProgressBar mWeatherRequestProgressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -48,9 +48,18 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_forecast);
 
-        mWeatherTextView = (TextView) findViewById(R.id.tv_weather_data);
         mErrorMessageTextView = (TextView) findViewById(R.id.tv_error_message);
         mWeatherRequestProgressBar = (ProgressBar) findViewById(R.id.pb_weather_request);
+
+        mRecyclerView = (RecyclerView) findViewById(R.id.recyclerview_forecast);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this,
+                LinearLayoutManager.VERTICAL, false);
+        mRecyclerView.setLayoutManager(layoutManager);
+        mRecyclerView.setHasFixedSize(true);
+
+        mForecastAdapter = new ForecastAdapter();
+        mRecyclerView.setAdapter(mForecastAdapter);
+
         loadWeatherData();
     }
 
@@ -59,15 +68,16 @@ public class MainActivity extends AppCompatActivity {
         new WeatherQueryTask().execute(SunshinePreferences.getPreferredWeatherLocation(this));
     }
 
-    private void showWeatherData(String weatherData)
+    private void showWeatherData(String[] weatherData)
     {
         mErrorMessageTextView.setVisibility(View.INVISIBLE);
-        mWeatherTextView.setText(weatherData);
+        mForecastAdapter.setmWeatherData(weatherData);
+        // mWeatherTextView.setText(weatherData);
     }
 
     private void showErrorMessage()
     {
-        mWeatherTextView.setText("");
+        mRecyclerView.setVisibility(View.INVISIBLE);
         mErrorMessageTextView.setVisibility(View.VISIBLE);
     }
 
@@ -83,7 +93,7 @@ public class MainActivity extends AppCompatActivity {
     {
         if(item.getItemId() == R.id.refresh_button)
         {
-            mWeatherTextView.setText("");
+            mForecastAdapter.setmWeatherData(null);
             loadWeatherData();
             return true;
         }
@@ -103,14 +113,7 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
 
-            StringBuilder builder = new StringBuilder();
-            for(String weather : s)
-            {
-                builder.append(weather);
-                builder.append("\n\n\n");
-            }
-
-            showWeatherData(builder.toString());
+            showWeatherData(s);
         }
 
         @Override
